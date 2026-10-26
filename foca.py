@@ -20,7 +20,7 @@ from groq import Groq
 
 import foca_transcritor as motor
 
-VERSAO = "1.0.0"
+VERSAO = "1.0.1"
 PASTA = motor.PASTA          # dados da pessoa: .env, aulas, prompt
 RECURSOS = motor.RECURSOS    # arquivos do programa: interface, ícones, script do Google Docs
 ICONE = RECURSOS / "foca.ico"

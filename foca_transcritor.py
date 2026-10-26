@@ -171,7 +171,8 @@ def carregar_env(sobrescrever=False):
 def salvar_env(novos):
     """Grava as configurações no .env, mantendo valores que não vieram em `novos`."""
     valores = carregar_env()
-    valores.update({k: (v or "").strip() for k, v in novos.items()})
+    # None = campo que não veio da tela: mantém o valor salvo em vez de apagar
+    valores.update({k: v.strip() for k, v in novos.items() if v is not None})
     linhas = ["# Configurações do Foca.AI (editável pela tela de Configurações)", ""]
     for chave in list(CHAVES_ENV) + [k for k in valores if k not in CHAVES_ENV]:
         if chave in CHAVES_ENV:
