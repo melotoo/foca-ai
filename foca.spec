@@ -4,12 +4,18 @@
 # Uso: python -m PyInstaller foca.spec
 import sys
 
+from PyInstaller.utils.hooks import collect_data_files
+
 WINDOWS = sys.platform == "win32"
+
+datas = [("interface", "interface"), ("google_docs_script.js", "."), ("foca.ico", "."), ("foca.png", ".")]
+if not WINDOWS:  # a biblioteca de som do Linux lê os próprios arquivos .h ao iniciar
+    datas += collect_data_files("soundcard")
 
 a = Analysis(
     ["foca.py"],
     pathex=[SPECPATH],
-    datas=[("interface", "interface"), ("google_docs_script.js", "."), ("foca.ico", "."), ("foca.png", ".")],
+    datas=datas,
     excludes=["tkinter"],
 )
 pyz = PYZ(a.pure)
