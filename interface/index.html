@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foca.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mar: #0F2B3C;
+    --mar-2: #173A50;
+    --mar-3: #2A5470;
+    --agua: #2BB3A3;
+    --agua-esc: #1E8E81;
+    --agua-clara: #DCF2EE;
+    --areia: #F4F1EA;
+    --card: #FFFDF9;
+    --borda: #E6E0D3;
+    --campo: #F8F5EE;
+    --texto: #17293A;
+    --suave: #687986;
+    --coral: #FF8A6B;
+    --coral-esc: #E56A4B;
+    --coral-claro: #FFE6DE;
+    --erro: #C2453A;
+    --sombra: 0 1px 2px rgba(15, 43, 60, .06), 0 6px 18px rgba(15, 43, 60, .06);
+    --titulo: "Fraunces", Georgia, serif;
+    --corpo: "Nunito", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; background: var(--areia); color: var(--texto);
+    font: 15px/1.5 var(--corpo); -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* ---------- barra lateral */
+  .lateral {
+    width: 236px; flex-shrink: 0; background: var(--mar); color: #fff;
+    display: flex; flex-direction: column; padding: 22px 14px 18px;
+  }
+  .marca { display: flex; align-items: center; gap: 12px; padding: 0 8px 26px; }
+  .marca svg { width: 46px; height: 46px; flex-shrink: 0; }
+  .marca strong { display: block; font: 700 24px/1 var(--titulo); letter-spacing: -.3px; }
+  .marca strong em { font-style: normal; color: var(--agua); }
+  .marca span { font-size: 12px; color: #A9C3D0; font-weight: 600; }
+  nav { display: flex; flex-direction: column; gap: 4px; }
+  nav button {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px;
+    background: none; border: 0; border-radius: 999px; color: #D6E4EB; font-weight: 700; text-align: left;
+  }
+  nav button svg { width: 19px; height: 19px; flex-shrink: 0; }
+  nav button:hover { background: var(--mar-2); color: #fff; }
+  nav button.ativo { background: var(--agua); color: var(--mar); box-shadow: 0 4px 14px rgba(43, 179, 163, .3); }
+  .rodape-lateral {
+    margin-top: auto; padding: 12px 14px; border-radius: 14px; background: var(--mar-2);
+    font-size: 13px; color: #C5D7E0; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .ponto { width: 9px; height: 9px; border-radius: 50%; background: #6E8796; margin-top: 6px; flex-shrink: 0; }
+  body.gravando .ponto { background: var(--coral); animation: pulsar 1.4s infinite; }
+  body.finalizando .ponto { background: #F2C14E; }
+  @keyframes pulsar { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 138, 107, .7); } 60% { box-shadow: 0 0 0 7px rgba(255, 138, 107, 0); } }
+
+  /* ---------- conteúdo */
+  main {
+    flex: 1; overflow-y: auto; padding: 34px 44px 60px;
+    background-image: radial-gradient(rgba(15, 43, 60, .07) 1px, transparent 1px); background-size: 18px 18px;
+  }
+  .pagina { display: none; max-width: 860px; }
+  .pagina.ativa { display: block; animation: entrar .25s ease; }
+  @keyframes entrar { from { opacity: 0; transform: translateY(6px); } }
+  .cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  h1 { font: 700 32px/1.15 var(--titulo); color: var(--mar); margin: 0 0 6px; letter-spacing: -.4px; }
+  .cabecalho p { margin: 0; color: var(--suave); }
+  h2 { font-size: 16px; font-weight: 800; margin: 0 0 4px; color: var(--mar); }
+  .desc { margin: 0 0 16px; color: var(--suave); font-size: 14px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--borda); border-radius: 18px;
+    padding: 22px 24px; margin-bottom: 18px; box-shadow: var(--sombra);
+  }
+  .card-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .card-topo h2 { margin: 0; flex: 1; }
+
+  label.campo { display: block; font-weight: 700; font-size: 13.5px; color: var(--mar); }
+  label.campo small { font-weight: 600; color: var(--suave); }
+  input, select, textarea {
+    display: block; width: 100%; margin-top: 6px; padding: 11px 14px; font: inherit; color: var(--texto);
+    background: var(--campo); border: 1.5px solid var(--borda); border-radius: 12px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; line-height: 1.55; font-size: 14px; min-height: 120px; }
+  .selo { font-size: 12.5px; font-weight: 800; padding: 4px 12px; border-radius: 999px; background: var(--agua-clara); color: var(--agua-esc); }
+  .selo.proprio { background: var(--coral-claro); color: var(--coral-esc); }
+  input:focus, select:focus, textarea:focus {border-color: var(--agua); box-shadow: 0 0 0 4px var(--agua-clara); background: #fff; }
+  .grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .linha { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+  .linha input, .linha select { margin-top: 0; flex: 1; min-width: 0; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+    padding: 11px 20px; border-radius: 999px; font-weight: 800; border: 1.5px solid transparent;
+    transition: transform .1s, background .15s, box-shadow .15s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.escuro { background: var(--mar); color: #fff; box-shadow: 0 3px 10px rgba(15, 43, 60, .25); }
+  .btn.escuro:hover:not(:disabled) { background: var(--mar-3); }
+  .btn.contorno { background: var(--card); border-color: var(--borda); color: var(--mar); }
+  .btn.contorno:hover:not(:disabled) { border-color: var(--mar-3); }
+  .btn.agua { background: var(--agua); color: var(--mar); box-shadow: 0 4px 14px rgba(43, 179, 163, .35); }
+  .btn.agua:hover:not(:disabled) { background: #36C2B2; }
+  .btn.coral { background: var(--coral); color: #fff; box-shadow: 0 4px 14px rgba(255, 138, 107, .4); }
+  .btn.coral:hover:not(:disabled) { background: var(--coral-esc); }
+  .btn.grande { padding: 15px 28px; font-size: 16px; }
+  .btn.pequeno { padding: 7px 14px; font-size: 13px; }
+  .link { background: none; border: 0; padding: 0; color: var(--coral-esc); font-weight: 800; }
+  .link:hover { text-decoration: underline; }
+
+  .resultado { margin-top: 10px; font-size: 13.5px; font-weight: 700; }
+  .resultado:empty { display: none; }
+  .resultado.ok { color: var(--agua-esc); }
+  .resultado.falha { color: var(--erro); }
+
+  .segmento {
+    display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px;
+    background: var(--campo); border: 1.5px solid var(--borda);
+  }
+  .segmento button {
+    border: 0; background: none; padding: 8px 18px; border-radius: 999px;
+    font-weight: 800; font-size: 14px; color: var(--suave); transition: background .15s, color .15s;
+  }
+  .segmento button:hover:not(.ativo):not(:disabled) { color: var(--mar); }
+  .segmento button.ativo { background: var(--mar); color: #fff; box-shadow: 0 2px 8px rgba(15, 43, 60, .2); }
+  .segmento button:disabled { cursor: default; }
+  .painel-destino { margin-top: 18px; }
+  .painel-destino .desc { margin-bottom: 14px; }
+  .passos-gdocs { margin-top: 0; }
+  .passos-gdocs li { margin-bottom: 8px; }
+  .passos-gdocs .btn { margin-left: 6px; vertical-align: middle; }
+
+  /* ---------- gravar */
+  .modo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .dica-modo { color: var(--suave); font-size: 13.5px; font-weight: 600; flex: 1; min-width: 220px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+  .acao-gravar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+    background: var(--agua-clara); color: var(--mar); font-weight: 700; font-size: 13.5px; max-width: 100%;
+  }
+  .chip svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .alerta {
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px; background: var(--coral-claro);
+    color: #8A3A26; font-weight: 700; font-size: 14px;
+  }
+  .cronometro {
+    font: 700 15px var(--corpo); font-variant-numeric: tabular-nums; color: var(--suave);
+    background: var(--campo); border-radius: 999px; padding: 4px 12px;
+  }
+  body.gravando .cronometro { color: var(--coral-esc); background: var(--coral-claro); }
+  .status-linha { font-size: 13.5px; color: var(--suave); font-weight: 600; margin-bottom: 10px; min-height: 20px; }
+  .transcricao {
+    max-height: 340px; overflow-y: auto; padding: 4px 6px 4px 0; font-size: 15px; line-height: 1.65;
+  }
+  .transcricao p { margin: 0 0 12px; animation: entrar .4s ease; }
+  .transcricao.vazio { color: var(--suave); font-style: italic; }
+  .ondas { display: inline-flex; gap: 3px; align-items: center; height: 16px; }
+  .ondas i { width: 3px; height: 100%; border-radius: 2px; background: var(--coral); animation: onda 1s infinite ease-in-out; }
+  .ondas i:nth-child(2) { animation-delay: .15s; } .ondas i:nth-child(3) { animation-delay: .3s; } .ondas i:nth-child(4) { animation-delay: .45s; }
+  @keyframes onda { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+
+  .md h3 { font-size: 15px; font-weight: 800; color: var(--mar); margin: 18px 0 6px; }
+  .md h3:first-child { margin-top: 0; }
+  .md ul { margin: 0 0 6px; padding-left: 20px; }
+  .md li { margin-bottom: 4px; }
+  .md p { margin: 0 0 10px; }
+  .md code { background: var(--agua-clara); color: var(--mar); padding: 1px 6px; border-radius: 6px; font-size: 13.5px; }
+
+  /* ---------- histórico */
+  .item-hist { display: flex; align-items: center; gap: 16px; }
+  .item-hist .info { flex: 1; min-width: 0; }
+  .item-hist h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-hist .meta { color: var(--suave); font-size: 13px; font-weight: 600; }
+  .icone-aula {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--agua-clara); color: var(--agua-esc);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .icone-aula svg { width: 22px; height: 22px; }
+  .vazio-grande { text-align: center; padding: 48px 24px; color: var(--suave); }
+  .vazio-grande svg { width: 72px; height: 72px; margin-bottom: 8px; }
+
+  /* ---------- configurações */
+  .passos { margin: 14px 0 0; padding: 14px 16px 14px 34px; background: var(--campo); border-radius: 12px; font-size: 13.5px; color: var(--suave); }
+  .passos li { margin-bottom: 4px; }
+  .passos b { color: var(--texto); }
+  .medidor { height: 10px; border-radius: 999px; background: var(--campo); border: 1px solid var(--borda); overflow: hidden; margin-top: 12px; }
+  .medidor div { height: 100%; width: 0; background: linear-gradient(90deg, var(--agua), var(--coral)); transition: width .4s; }
+  .barra-salvar {
+    position: sticky; bottom: -60px; margin: 6px -8px 0; padding: 14px 8px 0;
+    background: linear-gradient(transparent, var(--areia) 35%); display: flex; justify-content: flex-end; align-items: center; gap: 14px;
+  }
+  .barra-salvar span { color: var(--coral-esc); font-weight: 700; font-size: 13.5px; }
+
+  /* ---------- como funciona */
+  .hero { display: flex; gap: 24px; align-items: center; background: var(--mar); color: #E3EEF2; border: 0; }
+  .hero svg { width: 96px; height: 96px; flex-shrink: 0; }
+  .hero h2 { color: #fff; font: 700 22px/1.25 var(--titulo); margin-bottom: 8px; }
+  .hero p { margin: 0; }
+  .etapas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  .etapas .card { margin: 0; }
+  .numero {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 12px;
+    background: var(--coral-claro); color: var(--coral-esc); font-weight: 800;
+  }
+  .etapas p, .dicas li { color: var(--suave); font-size: 14px; margin: 0; }
+  .dicas ul { margin: 0; padding-left: 20px; }
+  .dicas li { margin-bottom: 8px; }
+  .dicas li b { color: var(--texto); }
+
+  /* ---------- modal e aviso */
+  .fundo-modal { position: fixed; inset: 0; background: rgba(15, 43, 60, .45); display: grid; place-items: center; padding: 30px; z-index: 10; }
+  .modal { background: var(--card); border-radius: 20px; width: min(760px, 100%); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+  .modal header { display: flex; align-items: center; gap: 10px; padding: 20px 24px 14px; border-bottom: 1px solid var(--borda); }
+  .modal header h2 { flex: 1; font: 700 20px var(--titulo); }
+  .modal .corpo { overflow-y: auto; padding: 18px 24px 24px; line-height: 1.65; }
+  .aviso {
+    position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: var(--mar); color: #fff; padding: 12px 22px; border-radius: 999px; font-weight: 700;
+    box-shadow: 0 8px 24px rgba(15, 43, 60, .3); transition: all .25s; z-index: 20;
+  }
+  .aviso.visivel { opacity: 1; transform: translate(-50%, 0); }
+  .aviso.falha { background: var(--erro); }
+
+  @media (max-width: 1000px) {
+    main { padding: 26px 24px 50px; }
+    .grade2, .etapas { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="logo" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="16" fill="#2BB3A3"/>
+      <path d="M13 35 A19 19 0 0 1 51 35" fill="none" stroke="#0F2B3C" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="32" cy="38" rx="17" ry="15" fill="#EAF0F2"/>
+      <rect x="8" y="31" width="9" height="14" rx="4" fill="#FF8A6B"/>
+      <rect x="47" y="31" width="9" height="14" rx="4" fill="#FF8A6B"/>
+      <circle cx="25.5" cy="34" r="2.8" fill="#0F2B3C"/><circle cx="38.5" cy="34" r="2.8" fill="#0F2B3C"/>
+      <circle cx="26.4" cy="33.1" r=".9" fill="#fff"/><circle cx="39.4" cy="33.1" r=".9" fill="#fff"/>
+      <ellipse cx="32" cy="43" rx="7.5" ry="5.5" fill="#fff"/>
+      <ellipse cx="32" cy="40.6" rx="2.6" ry="1.8" fill="#0F2B3C"/>
+      <g stroke="#0F2B3C" stroke-width="1.1" stroke-linecap="round">
+        <line x1="27" y1="43" x2="20" y2="42"/><line x1="27" y1="44.6" x2="20.5" y2="46"/>
+        <line x1="37" y1="43" x2="44" y2="42"/><line x1="37" y1="44.6" x2="43.5" y2="46"/>
+      </g>
+    </symbol>
+    <symbol id="i-fone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
+    <symbol id="i-hist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-config" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-ajuda" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  </defs>
+</svg>
+
+<aside class="lateral">
+  <div class="marca">
+    <svg><use href="#logo"/></svg>
+    <div><strong>Foca<em>.AI</em></strong><span>suas aulas, anotadas</span></div>
+  </div>
+  <nav>
+    <button data-pagina="gravar" class="ativo"><svg><use href="#i-fone"/></svg>Gravar aula</button>
+    <button data-pagina="historico"><svg><use href="#i-hist"/></svg>Histórico</button>
+    <button data-pagina="config"><svg><use href="#i-config"/></svg>Configurações</button>
+    <button data-pagina="sobre"><svg><use href="#i-ajuda"/></svg>Como funciona</button>
+  </nav>
+  <div class="rodape-lateral"><span class="ponto"></span><span id="status-lateral">Pronto para ouvir</span></div>
+</aside>
+
+<main>
+  <!-- ================= GRAVAR ================= -->
+  <section class="pagina ativa" id="pg-gravar">
+    <div class="cabecalho">
+      <div>
+        <h1>Gravar aula</h1>
+        <p>Dê play na aula e pode ir fazer outra coisa: o Foca anota tudo para você.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="modo">
+        <div class="segmento" id="seg-modo">
+          <button data-valor="sim" class="ativo">Transcrição + resumo</button>
+          <button data-valor="nao">Só transcrição</button>
+        </div>
+        <span class="dica-modo" id="dica-modo"></span>
+      </div>
+      <div class="grade2">
+        <label class="campo">Título da aula
+          <input id="titulo" placeholder="Ex.: Aula 3 — Pandas">
+        </label>
+        <label class="campo">Assunto e termos técnicos <small>(opcional)</small>
+          <input id="contexto" placeholder="Ex.: Python, pandas, dataframes">
+        </label>
+      </div>
+      <div class="acao-gravar">
+        <div class="chips">
+          <div class="chip" title="Fone/caixa de som que o Foca está ouvindo">
+            <svg><use href="#i-fone"/></svg><span id="fone-atual">Carregando…</span>
+            <button class="link" data-ir="config">trocar</button>
+          </div>
+          <div class="chip" title="Onde a transcrição é escrita">
+            <svg><use href="#i-doc"/></svg><span id="destino-atual">Carregando…</span>
+            <button class="link" data-ir="config">trocar</button>
+          </div>
+        </div>
+        <button id="btn-gravar" class="btn agua grande">● Começar a ouvir</button>
+      </div>
+      <div id="alerta-config" class="alerta" hidden>
+        Falta configurar a chave do Groq. <button class="link" data-ir="config">Configurar agora →</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-topo">
+        <h2>Transcrição ao vivo</h2>
+        <span class="ondas" id="ondas" hidden><i></i><i></i><i></i><i></i></span>
+        <span class="cronometro" id="cronometro">00:00</span>
+        <button id="btn-documento" class="btn contorno pequeno" hidden>Abrir documento ↗</button>
+      </div>
+      <div class="status-linha" id="status"></div>
+      <div class="transcricao vazio" id="transcricao">Quando você começar, o texto da aula aparece aqui.</div>
+    </div>
+
+    <div class="card" id="card-resumo" hidden>
+      <div class="card-topo"><h2>Resumo da aula</h2><button class="btn contorno pequeno" id="btn-copiar-resumo">Copiar</button></div>
+      <div class="md" id="resumo"></div>
+    </div>
+  </section>
+
+  <!-- ================= HISTÓRICO ================= -->
+  <section class="pagina" id="pg-historico">
+    <div class="cabecalho">
+      <div>
+        <h1>Histórico</h1>
+        <p>Todas as aulas transcritas ficam salvas também no seu computador.</p>
+      </div>
+      <button class="btn contorno" id="btn-pasta">Abrir pasta</button>
+    </div>
+    <div id="lista-historico"></div>
+  </section>
+
+  <!-- ================= CONFIGURAÇÕES ================= -->
+  <section class="pagina" id="pg-config">
+    <div class="cabecalho">
+      <div>
+        <h1>Configurações</h1>
+        <p>Chaves de acesso, onde salvar as aulas e o fone que o Foca vai ouvir.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Groq — transcrição e resumo</h2>
+      <p class="desc">É gratuito. A chave permite ao Foca usar a IA que transforma a fala em texto.
+        <button class="link" data-link="https://console.groq.com/keys">Obter minha chave →</button></p>
+      <label class="campo">Chave da API
+        <div class="linha">
+          <input type="password" id="cfg-groq" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+          <button class="btn contorno" data-mostrar="cfg-groq">Mostrar</button>
+          <button class="btn escuro" id="btn-testar-groq">Testar</button>
+        </div>
+      </label>
+      <div class="resultado" id="res-groq"></div>
+    </div>
+
+    <div class="card">
+      <h2>Onde salvar as aulas</h2>
+      <p class="desc">A transcrição (e o resumo) vão sendo escritos aqui durante a aula. Uma cópia fica sempre no computador.</p>
+      <div class="segmento" id="seg-destino">
+        <button data-valor="notion">Notion</button>
+        <button data-valor="gdocs">Google Docs</button>
+        <button data-valor="computador">Só no computador</button>
+      </div>
+
+      <div class="painel-destino" data-destino="notion">
+      <p class="desc">Precisa de uma integração do Notion conectada à página das aulas.
+        <button class="link" data-link="https://www.notion.so/my-integrations">Criar integração →</button></p>
+      <label class="campo">Token da integração
+        <div class="linha">
+          <input type="password" id="cfg-notion-token" placeholder="ntn_..." autocomplete="off" spellcheck="false">
+          <button class="btn contorno" data-mostrar="cfg-notion-token">Mostrar</button>
+        </div>
+      </label>
+      <label class="campo" style="margin-top:14px">Link da página onde as aulas vão ficar
+        <div class="linha">
+          <input id="cfg-notion-pagina" placeholder="https://www.notion.so/Minhas-aulas-..." spellcheck="false">
+          <button class="btn escuro" id="btn-testar-notion">Testar</button>
+        </div>
+      </label>
+      <div class="resultado" id="res-notion"></div>
+      <ol class="passos">
+        <li>Em <b>Criar integração</b>, crie uma integração interna e copie o <b>token</b>.</li>
+        <li>No Notion, abra a página das aulas → <b>•••</b> → <b>Conexões</b> → adicione a sua integração.</li>
+        <li>Copie o link da página (<b>Compartilhar → Copiar link</b>) e cole acima.</li>
+      </ol>
+      </div>
+
+      <div class="painel-destino" data-destino="gdocs">
+        <p class="desc">Usa um pequeno script grátis na sua conta Google, que cria um documento por aula.
+          Só precisa configurar uma vez (uns 3 minutos).</p>
+        <ol class="passos passos-gdocs">
+          <li>Abra o <button class="link" data-link="https://script.google.com/home/projects/create">Apps Script →</button>
+            (ele já abre um projeto novo).</li>
+          <li>Apague o código que aparecer e cole o do Foca:
+            <button class="btn escuro pequeno" id="btn-copiar-script">Copiar código do script</button></li>
+          <li>Clique em <b>Implantar → Nova implantação</b>, na engrenagem escolha <b>App da Web</b>.
+            Deixe <b>Executar como: Eu</b> e em <b>Quem pode acessar</b> escolha <b>Qualquer pessoa</b>. Clique em <b>Implantar</b>.</li>
+          <li>O Google pede autorização: <b>Autorizar acesso</b> → sua conta → <b>Avançado</b> →
+            <b>Acessar (não seguro)</b> → <b>Permitir</b>. O aviso aparece porque o script é seu, não de uma empresa.</li>
+          <li>Copie o <b>URL do app da Web</b> (termina em <b>/exec</b>) e cole abaixo.</li>
+        </ol>
+        <label class="campo" style="margin-top:14px">URL do app da Web
+          <div class="linha">
+            <input id="cfg-gdocs-url" placeholder="https://script.google.com/macros/s/.../exec" spellcheck="false">
+            <button class="btn escuro" id="btn-testar-gdocs">Testar</button>
+          </div>
+        </label>
+        <label class="campo" style="margin-top:14px">Pasta do Google Drive <small>(opcional; em branco = Meu Drive)</small>
+          <input id="cfg-gdocs-pasta" placeholder="https://drive.google.com/drive/folders/..." spellcheck="false">
+        </label>
+        <div class="resultado" id="res-gdocs"></div>
+      </div>
+
+      <div class="painel-destino" data-destino="computador">
+        <p class="desc" style="margin:16px 0 0">As aulas ficam só na pasta <b>transcricoes</b> do Foca.AI e no Histórico.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Fone que o Foca vai ouvir</h2>
+      <p class="desc">Escolha onde a aula está tocando. Para conferir, dê play em algo e clique em “Testar som”.</p>
+      <div class="linha">
+        <select id="cfg-dispositivo"></select>
+        <button class="btn contorno" id="btn-atualizar-disp">Atualizar lista</button>
+        <button class="btn escuro" id="btn-testar-som">Testar som</button>
+      </div>
+      <div class="medidor"><div id="medidor"></div></div>
+      <div class="resultado" id="res-som"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-topo">
+        <h2>Como o resumo deve ser feito</h2>
+        <span class="selo" id="selo-prompt">Usando o modelo padrão</span>
+      </div>
+      <p class="desc">Escreva do seu jeito o que o resumo deve ter: seções, tamanho, tom, foco na prova…
+        Se deixar em branco, o Foca usa um modelo completo com visão geral, conceitos, passo a passo,
+        exemplos, códigos, dicas, tarefas e perguntas para revisão.</p>
+      <textarea id="cfg-prompt" rows="9" spellcheck="false"
+        placeholder="Ex.: Faça um resumo curto, focado no que pode cair na prova. Comece com os 5 pontos mais importantes, depois liste as fórmulas com um exemplo de uso cada e termine com 3 exercícios para eu praticar."></textarea>
+      <div class="linha" style="margin-top:12px">
+        <button class="btn contorno" id="btn-ver-modelo">Começar a partir do modelo padrão</button>
+        <button class="btn contorno" id="btn-limpar-prompt">Limpar (voltar ao padrão)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Ícone na área de trabalho</h2>
+      <p class="desc">Cria um atalho para abrir o Foca.AI com dois cliques.</p>
+      <button class="btn contorno" id="btn-atalho">Criar ícone na área de trabalho</button>
+      <div class="resultado" id="res-atalho"></div>
+    </div>
+
+    <div class="barra-salvar">
+      <span id="nao-salvo" hidden>Alterações não salvas</span>
+      <button class="btn agua grande" id="btn-salvar">Salvar configurações</button>
+    </div>
+  </section>
+
+  <!-- ================= COMO FUNCIONA ================= -->
+  <section class="pagina" id="pg-sobre">
+    <div class="cabecalho">
+      <div>
+        <h1>Como funciona</h1>
+        <p>O que o Foca.AI faz e como tirar o melhor dele.</p>
+      </div>
+    </div>
+
+    <div class="card hero">
+      <svg><use href="#logo"/></svg>
+      <div>
+        <h2>Você assiste, o Foca anota.</h2>
+        <p>O Foca.AI escuta a aula que está tocando no seu fone, transcreve tudo em tempo real e
+          escreve no Notion ou num Google Docs, sem você precisar deixar o cursor em nenhuma caixa de texto.
+          Quando a aula termina, ele monta um resumo com os pontos principais.</p>
+      </div>
+    </div>
+
+    <div class="etapas">
+      <div class="card">
+        <div class="numero">1</div>
+        <h2>Escuta</h2>
+        <p>Capta o som que sai do fone escolhido. Não usa o microfone: conversas ao redor e o barulho do teclado não entram.</p>
+      </div>
+      <div class="card">
+        <div class="numero">2</div>
+        <h2>Transcreve</h2>
+        <p>A cada 15 a 35 segundos, nas pausas da fala, envia um trecho para a IA do Groq. O texto chega ao documento com uns 30 segundos de atraso.</p>
+      </div>
+      <div class="card">
+        <div class="numero">3</div>
+        <h2>Resume</h2>
+        <p>Ao parar, organiza principais pontos, conceitos, exemplos e tarefas no topo do documento. No modo “Só transcrição” essa etapa é pulada.</p>
+      </div>
+    </div>
+
+    <div class="card dicas">
+      <h2>Dicas</h2>
+      <ul style="margin-top:10px">
+        <li><b>Preencha “assunto e termos”</b> antes de começar: ajuda a IA a acertar nomes e palavras técnicas.</li>
+        <li><b>Pode minimizar o Foca.AI</b> e usar o computador normalmente. Só não feche a janela durante a aula.</li>
+        <li><b>Quer o resumo de outro jeito?</b> Em Configurações → Como o resumo deve ser feito, escreva suas orientações (ex.: “foco no que cai na prova”).</li>
+        <li><b>Pausou a aula?</b> Sem problema: o Foca espera e continua quando o som voltar.</li>
+        <li><b>Usa fone USB ou Bluetooth?</b> Escolha ele em Configurações → Fone que o Foca vai ouvir.</li>
+        <li><b>Limite gratuito:</b> o Groq aceita cerca de 8 horas de áudio por dia.</li>
+        <li><b>Aula longa ou limite do Groq apertado?</b> Use “Só transcrição”: o resumo é a parte que mais gasta o limite por minuto.</li>
+        <li><b>Privacidade:</b> o áudio vai para o Groq e o texto para o seu Notion ou Google Docs. As chaves ficam salvas só neste computador.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<div class="fundo-modal" id="modal" hidden>
+  <div class="modal">
+    <header>
+      <h2 id="modal-titulo"></h2>
+      <button class="btn contorno pequeno" id="modal-copiar">Copiar</button>
+      <button class="btn escuro pequeno" id="modal-fechar">Fechar</button>
+    </header>
+    <div class="corpo md" id="modal-corpo"></div>
+  </div>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+const api = () => window.pywebview.api;
+let estado = "parado";   // parado | gravando | finalizando
+let inicio = 0, relogio = null, urlDocumento = null, padraoDisp = "";
+let comResumo = true, codigoScript = "";
+const NOMES_DESTINO = { notion: "Notion", gdocs: "Google Docs", computador: "Só no computador" };
+
+// ---------------- utilidades
+function escapar(t) {
+  return t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function inline(t) {
+  return escapar(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+function markdown(md) {
+  let html = "", lista = null;   // lista aberta: "ul", "ol" ou null
+  for (const bruta of md.split("\n")) {
+    const l = bruta.trim();
+    const tipo = /^[-*•]\s+/.test(l) ? "ul" : /^\d+[.)]\s+/.test(l) ? "ol" : null;
+    if (lista && tipo !== lista) { html += `</${lista}>`; lista = null; }
+    if (!l) continue;
+    if (l.startsWith("#")) html += `<h3>${inline(l.replace(/^#+\s*/, ""))}</h3>`;
+    else if (tipo) {
+      if (!lista) { html += `<${tipo}>`; lista = tipo; }
+      html += `<li>${inline(l.replace(/^([-*•]|\d+[.)])\s+/, ""))}</li>`;
+    } else html += `<p>${inline(l)}</p>`;
+  }
+  return html + (lista ? `</${lista}>` : "");
+}
+let timerAviso;
+function avisar(msg, falha = false) {
+  const el = $("#aviso");
+  el.textContent = msg;
+  el.className = "aviso visivel" + (falha ? " falha" : "");
+  clearTimeout(timerAviso);
+  timerAviso = setTimeout(() => el.classList.remove("visivel"), 3500);
+}
+function resultado(id, r) {
+  const el = $(id);
+  el.textContent = r.msg;
+  el.className = "resultado " + (r.ok ? "ok" : "falha");
+}
+async function ocupado(botao, texto, tarefa) {
+  const original = botao.textContent;
+  botao.disabled = true; botao.textContent = texto;
+  try { return await tarefa(); } finally { botao.disabled = false; botao.textContent = original; }
+}
+
+// ---------------- navegação
+function irPara(pagina) {
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("ativo", b.dataset.pagina === pagina));
+  document.querySelectorAll(".pagina").forEach((p) => p.classList.toggle("ativa", p.id === "pg-" + pagina));
+  document.querySelector("main").scrollTop = 0;
+  if (pagina === "historico") carregarHistorico();
+}
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => irPara(b.dataset.pagina));
+document.querySelectorAll("[data-ir]").forEach((b) => b.onclick = () => irPara(b.dataset.ir));
+document.querySelectorAll("[data-link]").forEach((b) => b.onclick = () => api().abrir_link(b.dataset.link));
+document.querySelectorAll("[data-mostrar]").forEach((b) => b.onclick = () => {
+  const campo = document.getElementById(b.dataset.mostrar);
+  const ver = campo.type === "password";
+  campo.type = ver ? "text" : "password";
+  b.textContent = ver ? "Ocultar" : "Mostrar";
+});
+
+// ---------------- configurações
+function nomeFone(valor) { return valor || `Padrão do sistema (${padraoDisp})`; }
+function atualizarChipFone() { $("#fone-atual").textContent = nomeFone($("#cfg-dispositivo").value); }
+
+// ---- segmentos (botões de escolha única)
+function valorSegmento(id) { return $(`#${id} button.ativo`).dataset.valor; }
+function marcarSegmento(id, valor) {
+  document.querySelectorAll(`#${id} button`).forEach((b) => b.classList.toggle("ativo", b.dataset.valor === valor));
+}
+
+function mostrarDestino(valor) {
+  marcarSegmento("seg-destino", valor);
+  document.querySelectorAll(".painel-destino").forEach((p) => { p.hidden = p.dataset.destino !== valor; });
+}
+function atualizarChipDestino() {
+  const d = valorSegmento("seg-destino");
+  $("#destino-atual").textContent = d === "computador" ? "Salvando só no computador" : `Salvando no ${NOMES_DESTINO[d]}`;
+}
+document.querySelectorAll("#seg-destino button").forEach((b) => b.onclick = () => {
+  mostrarDestino(b.dataset.valor);
+  $("#nao-salvo").hidden = false;
+});
+
+function mostrarModo(resumir) {
+  comResumo = resumir;
+  marcarSegmento("seg-modo", resumir ? "sim" : "nao");
+  $("#dica-modo").textContent = resumir
+    ? "Ao parar, o Foca monta o resumo da aula."
+    : "Não gasta o limite do Groq com resumo. Você pode resumir depois, por fora.";
+}
+document.querySelectorAll("#seg-modo button").forEach((b) => b.onclick = () => {
+  if (estado !== "parado") return;
+  mostrarModo(b.dataset.valor === "sim");
+  api().definir_resumo(comResumo);
+});
+
+$("#btn-copiar-script").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(codigoScript);
+  } catch {  // alguns navegadores embutidos bloqueiam a área de transferência moderna
+    const t = document.createElement("textarea");
+    t.value = codigoScript;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand("copy");
+    t.remove();
+  }
+  avisar("Código copiado! Cole no Apps Script.");
+};
+
+async function carregarConfig() {
+  const c = await api().config();
+  $("#cfg-groq").value = c.groq;
+  $("#cfg-notion-token").value = c.notion_token;
+  $("#cfg-notion-pagina").value = c.notion_pagina;
+  $("#cfg-gdocs-url").value = c.gdocs_url;
+  $("#cfg-gdocs-pasta").value = c.gdocs_pasta;
+  codigoScript = c.gdocs_script;
+  mostrarDestino(c.destino);
+  atualizarChipDestino();
+  mostrarModo(c.resumo);
+  $("#cfg-prompt").value = c.prompt_resumo;
+  modeloPadrao = c.modelo_padrao;
+  atualizarSeloPrompt();
+  $("#alerta-config").hidden = !!c.groq;
+  await carregarDispositivos(c.dispositivo);
+  $("#nao-salvo").hidden = true;
+}
+async function carregarDispositivos(escolhido) {
+  const atual = escolhido ?? $("#cfg-dispositivo").value;
+  const d = await api().dispositivos();
+  padraoDisp = d.padrao;
+  const sel = $("#cfg-dispositivo");
+  sel.innerHTML = "";
+  sel.add(new Option(`Padrão do sistema (${d.padrao})`, ""));
+  for (const nome of d.lista) sel.add(new Option(nome, nome));
+  if (atual && !d.lista.includes(atual)) sel.add(new Option(`${atual} (desconectado)`, atual));
+  sel.value = atual || "";
+  atualizarChipFone();
+}
+document.querySelectorAll("#pg-config input, #pg-config select, #pg-config textarea").forEach((el) =>
+  el.addEventListener("input", () => { $("#nao-salvo").hidden = false; }));
+
+let modeloPadrao = "";
+function atualizarSeloPrompt() {
+  const proprio = !!$("#cfg-prompt").value.trim();
+  const selo = $("#selo-prompt");
+  selo.textContent = proprio ? "Usando as suas orientações" : "Usando o modelo padrão";
+  selo.classList.toggle("proprio", proprio);
+}
+function mudouPrompt(texto) {
+  $("#cfg-prompt").value = texto;
+  $("#nao-salvo").hidden = false;
+  atualizarSeloPrompt();
+}
+$("#cfg-prompt").addEventListener("input", atualizarSeloPrompt);
+$("#btn-ver-modelo").onclick = () => {
+  if ($("#cfg-prompt").value.trim() && !confirm("Substituir o texto atual pelo modelo padrão?")) return;
+  mudouPrompt(modeloPadrao);
+  $("#cfg-prompt").focus();
+};
+$("#btn-limpar-prompt").onclick = () => mudouPrompt("");
+
+$("#btn-salvar").onclick = async () => {
+  await api().salvar({
+    groq: $("#cfg-groq").value, destino: valorSegmento("seg-destino"),
+    notion_token: $("#cfg-notion-token").value, notion_pagina: $("#cfg-notion-pagina").value,
+    gdocs_url: $("#cfg-gdocs-url").value, gdocs_pasta: $("#cfg-gdocs-pasta").value,
+    dispositivo: $("#cfg-dispositivo").value, prompt_resumo: $("#cfg-prompt").value,
+  });
+  $("#nao-salvo").hidden = true;
+  $("#alerta-config").hidden = !!$("#cfg-groq").value.trim();
+  atualizarChipFone();
+  atualizarChipDestino();
+  avisar("Configurações salvas!");
+};
+$("#btn-testar-groq").onclick = (e) => ocupado(e.target, "Testando…", async () =>
+  resultado("#res-groq", await api().testar_groq($("#cfg-groq").value)));
+$("#btn-testar-notion").onclick = (e) => ocupado(e.target, "Testando…", async () =>
+  resultado("#res-notion", await api().testar_notion($("#cfg-notion-token").value, $("#cfg-notion-pagina").value)));
+$("#btn-testar-gdocs").onclick = (e) => ocupado(e.target, "Testando…", async () =>
+  resultado("#res-gdocs", await api().testar_gdocs($("#cfg-gdocs-url").value, $("#cfg-gdocs-pasta").value)));
+$("#btn-atualizar-disp").onclick = (e) => ocupado(e.target, "Atualizando…", () => carregarDispositivos());
+$("#btn-testar-som").onclick = (e) => ocupado(e.target, "Ouvindo…", async () => {
+  $("#medidor").style.width = "0";
+  const r = await api().testar_som($("#cfg-dispositivo").value);
+  if (!r.ok) return resultado("#res-som", r);
+  $("#medidor").style.width = Math.min(100, Math.round(r.volume / 0.08 * 100)) + "%";
+  resultado("#res-som", r.volume >= 0.004
+    ? { ok: true, msg: "Som detectado! O Foca está ouvindo esse fone." }
+    : { ok: false, msg: "Silêncio. Dê play em algo nesse fone e teste de novo (ou escolha outro)." });
+});
+$("#btn-atalho").onclick = (e) => ocupado(e.target, "Criando…", async () =>
+  resultado("#res-atalho", await api().criar_atalho()));
+
+// ---------------- gravação
+function definirEstado(novo) {
+  estado = novo;
+  document.body.classList.toggle("gravando", novo === "gravando");
+  document.body.classList.toggle("finalizando", novo === "finalizando");
+  const b = $("#btn-gravar");
+  b.disabled = novo === "finalizando";
+  b.className = "btn grande " + (novo === "parado" ? "agua" : "coral");
+  b.textContent = {
+    parado: "● Começar a ouvir",
+    gravando: comResumo ? "■ Parar e resumir" : "■ Parar",
+    finalizando: comResumo ? "Resumindo…" : "Finalizando…",
+  }[novo];
+  $("#ondas").hidden = novo !== "gravando";
+  $("#titulo").disabled = $("#contexto").disabled = novo !== "parado";
+  document.querySelectorAll("#seg-modo button").forEach((s) => { s.disabled = novo !== "parado"; });
+  if (novo === "parado") { clearInterval(relogio); $("#status-lateral").textContent = "Pronto para ouvir"; }
+}
+function marcarTempo() {
+  const s = Math.floor((Date.now() - inicio) / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, seg = s % 60;
+  const dois = (n) => String(n).padStart(2, "0");
+  $("#cronometro").textContent = (h ? h + ":" : "") + dois(m) + ":" + dois(seg);
+}
+function status(msg) {
+  $("#status").textContent = msg;
+  $("#status-lateral").textContent = msg;
+}
+
+$("#btn-gravar").onclick = async () => {
+  if (estado === "gravando") {
+    definirEstado("finalizando");
+    status("Terminando os últimos trechos…");
+    return api().parar();
+  }
+  if (!$("#cfg-groq").value.trim()) { irPara("config"); return avisar("Configure a chave do Groq primeiro.", true); }
+  const titulo = await api().iniciar($("#titulo").value, $("#contexto").value, comResumo);
+  if (!titulo) return;
+  $("#titulo").value = titulo;
+  urlDocumento = null;
+  $("#btn-documento").hidden = true;
+  $("#card-resumo").hidden = true;
+  const t = $("#transcricao");
+  t.className = "transcricao vazio";
+  t.textContent = "Ouvindo… o primeiro trecho aparece em uns 20 segundos.";
+  inicio = Date.now(); marcarTempo();
+  relogio = setInterval(marcarTempo, 1000);
+  definirEstado("gravando");
+  status("Preparando…");
+};
+$("#btn-documento").onclick = () => urlDocumento && api().abrir_link(urlDocumento);
+$("#btn-copiar-resumo").onclick = () => { navigator.clipboard.writeText($("#resumo").innerText); avisar("Resumo copiado!"); };
+
+window.foca = {
+  evento(tipo, valor) {
+    if (tipo === "status") status(valor);
+    else if (tipo === "pagina") {
+      urlDocumento = valor.url;
+      $("#btn-documento").textContent = `Abrir no ${valor.nome} ↗`;
+      $("#btn-documento").hidden = false;
+    } else if (tipo === "texto") {
+      const t = $("#transcricao");
+      if (t.classList.contains("vazio")) { t.classList.remove("vazio"); t.innerHTML = ""; }
+      const perto = t.scrollHeight - t.scrollTop - t.clientHeight < 60;
+      const p = document.createElement("p");
+      p.textContent = valor;
+      t.appendChild(p);
+      if (perto) t.scrollTop = t.scrollHeight;
+      if (estado === "gravando") status("Transcrevendo…");
+    } else if (tipo === "resumo") {
+      $("#resumo").innerHTML = markdown(valor);
+      $("#card-resumo").hidden = false;
+    } else if (tipo === "fim") {
+      definirEstado("parado");
+      if (!valor.transcrito) {
+        status("Nada foi transcrito: confira se o som estava saindo no fone escolhido.");
+        avisar("Nenhuma fala detectada.", true);
+      } else if (valor.resumo) {
+        status("Aula salva e resumida.");
+        avisar("Aula salva!");
+        $("#card-resumo").scrollIntoView({ behavior: "smooth" });
+      } else {
+        status("Transcrição salva.");
+        avisar("Transcrição salva!");
+      }
+    } else if (tipo === "erro") {
+      definirEstado("parado");
+      status("Erro: " + valor);
+      avisar(valor, true);
+    } else if (tipo === "aviso_fechar") {
+      avisar("Pare a gravação antes de fechar o Foca.AI.", true);
+      irPara("gravar");
+    }
+  },
+};
+
+// ---------------- histórico
+async function carregarHistorico() {
+  const itens = await api().historico();
+  const lista = $("#lista-historico");
+  if (!itens.length) {
+    lista.innerHTML = `<div class="card vazio-grande"><svg><use href="#logo"/></svg>
+      <h2>Nenhuma aula ainda</h2><p>As aulas que você gravar aparecem aqui.</p></div>`;
+    return;
+  }
+  lista.innerHTML = "";
+  for (const it of itens) {
+    const card = document.createElement("div");
+    card.className = "card item-hist";
+    card.innerHTML = `<div class="icone-aula"><svg><use href="#i-doc"/></svg></div>
+      <div class="info"><h2>${escapar(it.titulo)}</h2>
+        <div class="meta">${escapar(it.quando)} · ${it.palavras.toLocaleString("pt-BR")} palavras</div></div>`;
+    if (it.resumo) card.appendChild(botaoAbrir("Resumo", "btn escuro pequeno", it.titulo, it.resumo, true));
+    card.appendChild(botaoAbrir("Transcrição", "btn contorno pequeno", it.titulo, it.arquivo, false));
+    lista.appendChild(card);
+  }
+}
+function botaoAbrir(rotulo, classe, titulo, arquivo, ehResumo) {
+  const b = document.createElement("button");
+  b.className = classe;
+  b.textContent = rotulo;
+  b.onclick = async () => {
+    const texto = await api().ler(arquivo);
+    $("#modal-titulo").textContent = (ehResumo ? "Resumo — " : "Transcrição — ") + titulo;
+    $("#modal-corpo").innerHTML = markdown(texto);
+    $("#modal").hidden = false;
+  };
+  return b;
+}
+$("#btn-pasta").onclick = () => api().abrir_pasta();
+$("#modal-fechar").onclick = () => { $("#modal").hidden = true; };
+$("#modal").onclick = (e) => { if (e.target.id === "modal") $("#modal").hidden = true; };
+$("#modal-copiar").onclick = () => { navigator.clipboard.writeText($("#modal-corpo").innerText); avisar("Copiado!"); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#modal").hidden = true; });
+
+// ---------------- início
+window.addEventListener("pywebviewready", async () => {
+  await carregarConfig();
+  if (await api().gravando()) definirEstado("gravando");
+});
+</script>
+</body>
+</html>

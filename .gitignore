@@ -1,0 +1,10 @@
+# Dados de cada pessoa: nunca vão para o GitHub
+.env
+transcricoes/
+prompt_resumo.txt
+
+# Arquivos gerados
+__pycache__/
+build/
+dist/
+.claude/
